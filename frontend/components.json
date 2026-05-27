@@ -1,0 +1,16 @@
+export default {
+  style: 'default',
+  rsc: false,
+  tsx: true,
+  tailwind: {
+    config: 'tailwind.config.js',
+    css: 'src/index.css',
+    baseColor: 'slate',
+    cssVariables: true,
+  },
+  alias: {
+    path: '@',
+    component: 'src/components',
+    ui: 'src/components/ui',
+  },
+};

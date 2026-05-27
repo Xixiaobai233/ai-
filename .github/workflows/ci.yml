@@ -1,0 +1,87 @@
+# =============================================================================
+# CI 配置文件 —— 前端 + 后端并行流水线
+# 触发器：push / pull_request 到 main 或 master 分支
+# =============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+# 全局超时：整个 workflow 最长 15 分钟
+# 单个 job 超时在 job-level 设置
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ===========================================================================
+  # 前端 Job
+  # ===========================================================================
+  frontend:
+    name: Frontend (Vite + React)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: 安装依赖
+        run: cd frontend && npm ci
+
+      - name: TypeScript 类型检查
+        run: cd frontend && npx tsc --noEmit
+
+      - name: 运行单元测试
+        run: cd frontend && npx vitest run
+
+      - name: 构建生产包
+        run: cd frontend && npm run build
+
+  # ===========================================================================
+  # 后端 Job
+  # ===========================================================================
+  backend:
+    name: Backend (Express + Prisma)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    # 后端测试使用 SQLite 内存/文件数据库，不需要 PostgreSQL 等服务
+    # API 调用（DeepSeek）已被 vi.mock / jest.mock 模拟，无需真实 API Key
+    env:
+      DATABASE_URL: "file:./ci-test.db"
+      JWT_SECRET: "ci-test-secret-key-do-not-use-in-production"
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 安装 Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: 安装依赖
+        run: cd backend && npm ci
+
+      - name: TypeScript 类型检查
+        run: cd backend && npx tsc --noEmit
+
+      - name: 生成 Prisma Client
+        run: cd backend && npx prisma generate
+
+      - name: 运行后端测试
+        run: cd backend && npx jest --forceExit --detectOpenHandles

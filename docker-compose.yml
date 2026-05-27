@@ -1,0 +1,71 @@
+# ============================================================
+# Docker Compose — Task Manager 全栈部署
+#
+# 注意事项：
+#   1. 部署前请将 backend/prisma/schema.prisma 中的
+#      provider 从 "sqlite" 改为 "postgresql"，因为 Docker
+#      环境使用 PostgreSQL 而非 SQLite。
+#   2. backend/.env 中的 DATABASE_URL 会被 docker-compose
+#      的 environment 覆盖，无需手动修改 .env 文件。
+#   3. JWT_SECRET 和 DEEPSEEK_API_KEY 从 backend/.env 读取，
+#      请确保生产环境使用安全的值。
+# ============================================================
+
+services:
+  # ---------- PostgreSQL 数据库 ----------
+  postgres:
+    image: postgres:15-alpine
+    container_name: taskmanager-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: taskmanager
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  # ---------- 后端 API ----------
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: taskmanager-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # 从 .env 文件读取 JWT_SECRET、DEEPSEEK_API_KEY 等敏感变量
+    env_file:
+      - ./backend/.env
+    environment:
+      # 覆盖 .env 中的 SQLite 连接串，使用 docker-compose 内部网络地址
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/taskmanager
+      - NODE_ENV=production
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+
+  # ---------- 前端 SPA ----------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: taskmanager-frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local

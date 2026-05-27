@@ -1,0 +1,207 @@
+{
+  "project": "AI Agent 协作式任务管理平台",
+  "version": "1.0.0",
+  "totalTasks": 20,
+  "tasks": [
+    {
+      "id": "T-001",
+      "title": "初始化项目结构",
+      "description": "搭建前端 Vite + React + TypeScript 项目，初始化后端 Express + Prisma 项目，配置 TailwindCSS 和 shadcn/ui",
+      "agent": "fullstack",
+      "phase": 2,
+      "dependencies": [],
+      "estimatedHours": 2,
+      "files": ["frontend/package.json", "frontend/vite.config.ts", "frontend/tailwind.config.js", "frontend/tsconfig.json", "backend/package.json", "backend/tsconfig.json", "backend/prisma/schema.prisma"]
+    },
+    {
+      "id": "T-002",
+      "title": "配置 Prisma 数据模型与数据库迁移",
+      "description": "定义 User、Project、ProjectMember、Task、Comment 模型的 Prisma schema，运行首次迁移",
+      "agent": "backend",
+      "phase": 2,
+      "dependencies": ["T-001"],
+      "estimatedHours": 2,
+      "files": ["backend/prisma/schema.prisma", "backend/prisma/migrations/"]
+    },
+    {
+      "id": "T-003",
+      "title": "实现用户注册 API",
+      "description": "POST /api/auth/register — 邮箱+密码注册，密码 bcrypt 加密，返回 JWT token",
+      "agent": "backend",
+      "phase": 2,
+      "dependencies": ["T-002"],
+      "estimatedHours": 2,
+      "files": ["backend/src/routes/auth.ts", "backend/src/services/auth.service.ts", "backend/src/middleware/auth.ts"]
+    },
+    {
+      "id": "T-004",
+      "title": "实现用户登录 API",
+      "description": "POST /api/auth/login — 验证凭证后签发 JWT token；GET /api/auth/me — 获取当前用户信息",
+      "agent": "backend",
+      "phase": 2,
+      "dependencies": ["T-003"],
+      "estimatedHours": 1.5,
+      "files": ["backend/src/routes/auth.ts"]
+    },
+    {
+      "id": "T-005",
+      "title": "实现项目管理 API",
+      "description": "GET/POST /api/projects，GET/DELETE /api/projects/:id，自动将创建者设为 owner",
+      "agent": "backend",
+      "phase": 2,
+      "dependencies": ["T-002", "T-004"],
+      "estimatedHours": 2,
+      "files": ["backend/src/routes/projects.ts", "backend/src/services/project.service.ts"]
+    },
+    {
+      "id": "T-006",
+      "title": "实现任务管理 API",
+      "description": "GET/POST /api/projects/:projectId/tasks，PUT/DELETE /api/tasks/:id，PATCH /api/tasks/:id/status",
+      "agent": "backend",
+      "phase": 2,
+      "dependencies": ["T-002", "T-004"],
+      "estimatedHours": 3,
+      "files": ["backend/src/routes/tasks.ts", "backend/src/services/task.service.ts"]
+    },
+    {
+      "id": "T-007",
+      "title": "实现评论 API",
+      "description": "GET/POST /api/tasks/:taskId/comments，支持按创建时间排序",
+      "agent": "backend",
+      "phase": 2,
+      "dependencies": ["T-002", "T-004"],
+      "estimatedHours": 1.5,
+      "files": ["backend/src/routes/comments.ts", "backend/src/services/comment.service.ts"]
+    },
+    {
+      "id": "T-008",
+      "title": "实现仪表盘统计 API",
+      "description": "GET /api/projects/:id/stats — 返回各状态任务数量、每个成员的任务数",
+      "agent": "backend",
+      "phase": 2,
+      "dependencies": ["T-006"],
+      "estimatedHours": 1.5,
+      "files": ["backend/src/routes/stats.ts"]
+    },
+    {
+      "id": "T-009",
+      "title": "实现 DeepSeek V4 AI API 集成",
+      "description": "POST /api/ai/ask — 通用 AI 对话；POST /api/ai/create-task — 自然语言创建任务。服务端调用 DeepSeek API",
+      "agent": "backend",
+      "phase": 2,
+      "dependencies": ["T-006"],
+      "estimatedHours": 2,
+      "files": ["backend/src/routes/ai.ts", "backend/src/services/deepseek.service.ts"]
+    },
+    {
+      "id": "T-010",
+      "title": "编写后端单元测试",
+      "description": "使用 Jest 为 auth、project、task、comment API 编写测试用例",
+      "agent": "testing",
+      "phase": 2,
+      "dependencies": ["T-004", "T-005", "T-006", "T-007"],
+      "estimatedHours": 3,
+      "files": ["backend/src/__tests__/auth.test.ts", "backend/src/__tests__/project.test.ts", "backend/src/__tests__/task.test.ts", "backend/src/__tests__/comment.test.ts"]
+    },
+    {
+      "id": "T-011",
+      "title": "搭建前端路由与布局框架",
+      "description": "配置 react-router-dom，实现带侧边栏的基础布局组件（Layout/Sidebar/Header），设置 AuthContext",
+      "agent": "frontend",
+      "phase": 2,
+      "dependencies": ["T-001"],
+      "estimatedHours": 2,
+      "files": ["frontend/src/App.tsx", "frontend/src/main.tsx", "frontend/src/components/Layout.tsx", "frontend/src/lib/auth-context.tsx"]
+    },
+    {
+      "id": "T-012",
+      "title": "实现登录/注册页面",
+      "description": "LoginForm、RegisterForm 组件，表单验证，调用 auth API，token 本地存储",
+      "agent": "frontend",
+      "phase": 2,
+      "dependencies": ["T-011"],
+      "estimatedHours": 2,
+      "files": ["frontend/src/pages/LoginPage.tsx", "frontend/src/pages/RegisterPage.tsx"]
+    },
+    {
+      "id": "T-013",
+      "title": "实现项目列表与创建项目页面",
+      "description": "项目列表展示（卡片式布局），新建项目对话框（名称+描述）",
+      "agent": "frontend",
+      "phase": 2,
+      "dependencies": ["T-011", "T-005"],
+      "estimatedHours": 2,
+      "files": ["frontend/src/pages/ProjectsPage.tsx"]
+    },
+    {
+      "id": "T-014",
+      "title": "实现看板视图与拖拽功能",
+      "description": "三列看板（待办/进行中/已完成），使用 @dnd-kit 实现拖拽改变状态",
+      "agent": "frontend",
+      "phase": 2,
+      "dependencies": ["T-011", "T-006"],
+      "estimatedHours": 4,
+      "files": ["frontend/src/pages/BoardPage.tsx", "frontend/src/components/KanbanColumn.tsx", "frontend/src/components/TaskCard.tsx"]
+    },
+    {
+      "id": "T-015",
+      "title": "实现创建/编辑任务对话框",
+      "description": "弹窗表单：标题、描述、优先级、指派人、截止日期；支持创建和编辑两种模式",
+      "agent": "frontend",
+      "phase": 2,
+      "dependencies": ["T-014"],
+      "estimatedHours": 2,
+      "files": ["frontend/src/components/TaskDialog.tsx"]
+    },
+    {
+      "id": "T-016",
+      "title": "实现任务详情页与评论功能",
+      "description": "任务详情展示 + 评论区（发表、查看评论）",
+      "agent": "frontend",
+      "phase": 2,
+      "dependencies": ["T-011", "T-007"],
+      "estimatedHours": 2,
+      "files": ["frontend/src/pages/TaskDetailPage.tsx", "frontend/src/components/CommentSection.tsx"]
+    },
+    {
+      "id": "T-017",
+      "title": "实现仪表盘页面",
+      "description": "使用 Recharts 展示任务状态分布饼图、各成员任务数柱状图",
+      "agent": "frontend",
+      "phase": 2,
+      "dependencies": ["T-011", "T-008"],
+      "estimatedHours": 2,
+      "files": ["frontend/src/pages/DashboardPage.tsx"]
+    },
+    {
+      "id": "T-018",
+      "title": "实现 AI 助手面板",
+      "description": "侧边悬浮 AI 聊天面板，支持自然语言创建任务、项目进度分析，调用 DeepSeek V4 API",
+      "agent": "frontend",
+      "phase": 2,
+      "dependencies": ["T-014", "T-009"],
+      "estimatedHours": 3,
+      "files": ["frontend/src/components/AIAssistant.tsx"]
+    },
+    {
+      "id": "T-019",
+      "title": "编写前端组件测试",
+      "description": "使用 Jest + React Testing Library 测试核心组件和页面",
+      "agent": "testing",
+      "phase": 2,
+      "dependencies": ["T-012", "T-013", "T-014", "T-015", "T-016", "T-017"],
+      "estimatedHours": 3,
+      "files": ["frontend/src/__tests__/"]
+    },
+    {
+      "id": "T-020",
+      "title": "Docker 化与部署配置",
+      "description": "编写 Dockerfile（前端 + 后端）、docker-compose.yml、nginx 配置、GitHub Actions CI 配置",
+      "agent": "devops",
+      "phase": 3,
+      "dependencies": ["T-001", "T-002"],
+      "estimatedHours": 2,
+      "files": ["Dockerfile.frontend", "Dockerfile.backend", "docker-compose.yml", ".github/workflows/ci.yml"]
+    }
+  ]
+}
